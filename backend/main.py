@@ -29,7 +29,7 @@ else:
 
 # Load model once at startup
 print(f"Loading MusicGen on {DEVICE}...")
-MODEL_NAME = "facebook/musicgen-small"
+MODEL_NAME = "facebook/musicgen-medium"
 model = MusicgenForConditionalGeneration.from_pretrained(MODEL_NAME).to(DEVICE)
 processor = AutoProcessor.from_pretrained(MODEL_NAME)
 SAMPLE_RATE = model.config.audio_encoder.sampling_rate
