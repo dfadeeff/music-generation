@@ -1,0 +1,16 @@
+[project]
+name = "music-generation"
+version = "0.1.0"
+description = "AI music generation using Meta's MusicGen — Global Hackathon VC Track"
+requires-python = ">=3.11"
+dependencies = [
+    "transformers",
+    "torch",
+    "scipy",
+    "fastapi",
+    "uvicorn",
+    "python-multipart",
+]
+
+[project.scripts]
+serve = "uvicorn backend.main:app --reload --port 8000"

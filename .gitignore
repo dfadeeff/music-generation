@@ -6,3 +6,6 @@ outputs/
 *.wav
 .DS_Store
 CLAUDE.md
+node_modules/
+.next/
+frontend/.env.local
