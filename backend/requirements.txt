@@ -1,0 +1,9 @@
+transformers
+torch
+scipy
+fastapi
+uvicorn
+python-multipart
+openai
+python-dotenv
+openai-whisper
