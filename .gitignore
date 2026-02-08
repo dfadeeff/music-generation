@@ -9,3 +9,5 @@ CLAUDE.md
 node_modules/
 .next/
 frontend/.env.local
+.env/
+.env

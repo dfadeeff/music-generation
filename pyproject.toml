@@ -10,6 +10,8 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "python-multipart",
+    "openai",
+    "python-dotenv",
 ]
 
 [project.scripts]
