@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .idea/
 outputs/
+data/
 *.wav
 .DS_Store
 CLAUDE.md

@@ -1,5 +1,60 @@
 [
   {
+    "id": "gen_1770516105",
+    "original_prompt": "Images: pexels-photo-448714-4028490543.jpeg",
+    "enhanced_prompt": "**MusicGen-ready prompt:** Create a calm, meditative instrumental track at ~100 BPM in the key of E major, incorporating acoustic guitar, soft piano, and gentle strings. The production should feature warm tones and natural reverb, evoking a sense of peaceful solitude amid nature's untouched beauty, with subtle rhythmic grooves that maintain a steady, balanced energy throughout.",
+    "emotion_profile": {
+      "emotion": "calm",
+      "energy": 57,
+      "style": 30,
+      "warmth": 40,
+      "arc": 10,
+      "description": "The emotional landscape is one of deep tranquility, evoking a sense of peaceful solitude amid nature's untouched beauty.",
+      "overrides": [
+        "energy"
+      ]
+    },
+    "explanation": {
+      "narrative": "From the serene imagery that whispers of tranquil retreats, the AI captured a gentle calmness that permeated the very essence of the track. It weaved together the strings of nature and soft piano, conjuring a meditative tapestry that resonates with the soul's longing for peaceful solitude.",
+      "timeline": [
+        {
+          "step": "Input Analysis",
+          "detail": "The AI interprets the user's serene visual input, recognizing the underlying theme of calmness."
+        },
+        {
+          "step": "Emotion Detection",
+          "detail": "The system detects the predominant emotion of tranquility, setting the foundation for the musical output."
+        },
+        {
+          "step": "Music Generation Prompt",
+          "detail": "A tailored prompt is crafted, specifying the desired attributes: calmness, a steady BPM, and warm instrumental choices."
+        },
+        {
+          "step": "Composition Creation",
+          "detail": "The AI composes the track, delicately blending acoustic guitar and soft piano with gentle strings to evoke the intended emotion."
+        },
+        {
+          "step": "Final Output",
+          "detail": "The completed instrumental track is presented, embodying a serene atmosphere of peaceful solitude amid nature's embrace."
+        }
+      ]
+    },
+    "analyses": [
+      {
+        "source": "image",
+        "caption": "A serene lake surrounded by towering mountains and dense forests, reflecting the clear blue sky.",
+        "emotion": "calm",
+        "energy": 20,
+        "mood": "peaceful and tranquil atmosphere"
+      }
+    ],
+    "filename": "gen_1770516105.wav",
+    "duration_tokens": 512,
+    "timestamp": 1770516108.604674,
+    "rating": 1,
+    "source": "multimodal"
+  },
+  {
     "id": "gen_1770514309",
     "original_prompt": "[Images: pexels-photo-448714-4028490543.jpeg] make it sad",
     "enhanced_prompt": "Create a melancholic instrumental piece reflecting a serene yet somber landscape, featuring piano and strings in a slow tempo, in a minor key, highlighting the stillness of water and the grandeur of mountains under a clear blue sky, evoking a sense of longing and nostalgia.",
