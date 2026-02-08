@@ -78,20 +78,24 @@ def enhance_prompt(raw_prompt: str) -> str:
     return resp.choices[0].message.content.strip()
 
 
-def describe_image(image_bytes: bytes) -> str:
-    """Use GPT-4o vision to describe an image for music generation."""
-    b64 = base64.b64encode(image_bytes).decode("utf-8")
+def describe_images(images_bytes: list[bytes], user_text: str = "") -> str:
+    """Use GPT-4o vision to describe one or more images for music generation."""
+    content = []
+    for img_bytes in images_bytes:
+        b64 = base64.b64encode(img_bytes).decode("utf-8")
+        content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}})
+    if user_text:
+        content.append({"type": "text", "text": f"Additional context from user: {user_text}"})
     resp = openai_client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": (
-                "Describe this image in terms of mood, emotion, colors, scene, and atmosphere. "
-                "Then suggest a musical interpretation: genre, tempo, instruments, key, energy. "
+                "You are given one or more images and optional text context. "
+                "Analyze all images together — their mood, emotion, colors, scenes, and atmosphere. "
+                "Synthesize a single unified musical interpretation: genre, tempo, instruments, key, energy. "
                 "Output a single MusicGen-ready prompt (1-2 sentences). Output ONLY the prompt."
             )},
-            {"role": "user", "content": [
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
-            ]},
+            {"role": "user", "content": content},
         ],
         max_tokens=150,
     )
@@ -144,16 +148,18 @@ def generate(req: GenerateRequest):
 
 @app.post("/generate-from-image")
 async def generate_from_image(
-    image: UploadFile = File(...),
+    images: list[UploadFile] = File(...),
+    text: str = Form(""),
     duration: int = Form(256),
 ):
-    image_bytes = await image.read()
-    music_prompt = describe_image(image_bytes)
+    images_bytes = [await img.read() for img in images]
+    image_names = [img.filename for img in images]
+    music_prompt = describe_images(images_bytes, text)
     filepath, filename = generate_audio(music_prompt, duration)
 
     entry = {
         "id": filename.replace(".wav", ""),
-        "original_prompt": f"[Image: {image.filename}]",
+        "original_prompt": f"[Images: {', '.join(image_names)}] {text}".strip(),
         "enhanced_prompt": music_prompt,
         "filename": filename,
         "duration_tokens": duration,

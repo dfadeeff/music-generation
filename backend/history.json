@@ -1,5 +1,15 @@
 [
   {
+    "id": "gen_1770514309",
+    "original_prompt": "[Images: pexels-photo-448714-4028490543.jpeg] make it sad",
+    "enhanced_prompt": "Create a melancholic instrumental piece reflecting a serene yet somber landscape, featuring piano and strings in a slow tempo, in a minor key, highlighting the stillness of water and the grandeur of mountains under a clear blue sky, evoking a sense of longing and nostalgia.",
+    "filename": "gen_1770514309.wav",
+    "duration_tokens": 512,
+    "timestamp": 1770514309.59761,
+    "rating": 0,
+    "source": "image"
+  },
+  {
     "id": "gen_1770513413",
     "original_prompt": "[Image: nature-images.-3306602254.jpg]",
     "enhanced_prompt": "A serene, tranquil landscape unfolds with vibrant green hues reflecting off the clear, serene water. Towering mountains, partially covered in snow, create a majestic backdrop, while dense greenery frames the scene, exuding a sense of peace and freshness. The atmosphere is calming, inviting a moment of stillness and reflection in nature.\n\n**MusicGen-ready prompt:** Create a peaceful instrumental piece in a major key, featuring acoustic guitar and flute, at a moderate tempo, capturing the serenity and beauty of a tranquil forest lake.",
