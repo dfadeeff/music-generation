@@ -20,10 +20,12 @@ const PRESETS = [
 ];
 
 const SLIDER_LABELS = {
-  energy: { name: "Energy", left: "Whisper", right: "Explosive" },
-  style: { name: "Style", left: "Lo-fi", right: "Cinematic" },
-  warmth: { name: "Warmth", left: "Warm Analog", right: "Bright Digital" },
-  arc: { name: "Arc", left: "Steady", right: "Dramatic Build" },
+  intensity: { name: "Intensity", left: "Gentle", right: "Powerful" },
+  mood: { name: "Mood", left: "Dark", right: "Bright" },
+  complexity: { name: "Complexity", left: "Minimal", right: "Layered" },
+  tempo: { name: "Tempo", left: "Slow", right: "Fast" },
+  texture: { name: "Texture", left: "Electronic", right: "Organic" },
+  narrative: { name: "Narrative", left: "Looping", right: "Cinematic Arc" },
 };
 
 export default function Home() {
@@ -49,8 +51,8 @@ export default function Home() {
   const voiceFileRef = useRef(null);
 
   // Sliders
-  const [sliders, setSliders] = useState({ energy: null, style: null, warmth: null, arc: null });
-  const [slidersEnabled, setSlidersEnabled] = useState({ energy: false, style: false, warmth: false, arc: false });
+  const [sliders, setSliders] = useState({ intensity: null, mood: null, complexity: null, tempo: null, texture: null, narrative: null });
+  const [slidersEnabled, setSlidersEnabled] = useState({ intensity: false, mood: false, complexity: false, tempo: false, texture: false, narrative: false });
 
   // Feedback
   const [fbRating, setFbRating] = useState(0);
@@ -355,7 +357,7 @@ export default function Home() {
                 <p style={s.histEnhanced}>{item.enhanced_prompt}</p>
                 {item.emotion_profile && (
                   <div style={s.miniProfileRow}>
-                    {["energy", "style", "warmth", "arc"].map(k => (
+                    {["intensity", "mood", "complexity", "tempo", "texture", "narrative"].map(k => (
                       <div key={k} style={s.miniBar}>
                         <div style={s.miniBarLabel}>{k}</div>
                         <div style={s.miniBarTrack}>
@@ -497,7 +499,7 @@ export default function Home() {
                 <div key={i} style={{ ...s.waveBar, animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>
-            <span style={s.loadingText}>Analyzing emotions & generating A/B variations...</span>
+            <span style={s.loadingText}>Analyzing emotions & generating 3 variations...</span>
           </div>
         )}
 
@@ -524,7 +526,7 @@ export default function Home() {
                   <p style={s.profileDesc}>{result.emotion_profile.description}</p>
                 )}
                 <div style={s.profileBars}>
-                  {["energy", "style", "warmth", "arc"].map(k => (
+                  {["intensity", "mood", "complexity", "tempo", "texture", "narrative"].map(k => (
                     <div key={k}>
                       <div style={s.profileBarHeader}>
                         <span style={s.profileBarLabel}>{SLIDER_LABELS[k].name}</span>
@@ -552,15 +554,15 @@ export default function Home() {
               <p style={s.resultEnhanced}>{result.enhanced_prompt}</p>
             </div>
 
-            {/* A/B Comparison */}
+            {/* A/B/C Comparison */}
             {result.variations && (
               <div style={s.section}>
-                <p style={s.resultLabel}>A/B Comparison</p>
+                <p style={s.resultLabel}>Compare Variations</p>
                 <div style={s.abRow}>
                   {result.variations.map(v => (
                     <div key={v.version} style={s.abCol}>
                       <div style={s.abVersionLabel}>Version {v.version}</div>
-                      <audio controls autoPlay={v.version === "A"} src={`${API}${v.audio_url}`} style={{ width: "100%" }} />
+                      <audio controls src={`${API}${v.audio_url}`} style={{ width: "100%" }} />
                     </div>
                   ))}
                 </div>
@@ -568,7 +570,7 @@ export default function Home() {
                   <div style={s.prefRow}>
                     <span style={s.prefLabel}>Which version do you prefer?</span>
                     <div style={s.prefBtns}>
-                      {["A", "B", ""].map(v => (
+                      {["A", "B", "C", ""].map(v => (
                         <button key={v} onClick={() => setFbPreferred(v)}
                           style={fbPreferred === v ? { ...s.prefBtn, ...s.prefBtnActive } : s.prefBtn}>
                           {v || "No preference"}
@@ -698,167 +700,257 @@ export default function Home() {
 
 const REFLECTION_THRESHOLD = 5;
 
-/* ——————————————— Styles ——————————————— */
+/* ——————————————— Midnight Studio Theme ——————————————— */
+const A = "#e8945a"; // amber accent
+const A2 = "#d4735a"; // coral accent
+const T = "#5ab8a8"; // teal accent
+const G = (o = 1) => `rgba(232, 148, 90, ${o})`; // amber glow
+
 const s = {
   page: { minHeight: "100vh", position: "relative", overflow: "hidden" },
   glow: {
-    position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)",
-    width: 600, height: 600, borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)",
+    position: "fixed", top: "-300px", left: "50%", transform: "translateX(-50%)",
+    width: 800, height: 800, borderRadius: "50%",
+    background: `radial-gradient(circle, ${G(0.06)} 0%, rgba(90, 184, 168, 0.03) 40%, transparent 70%)`,
     pointerEvents: "none", zIndex: 0,
   },
   container: {
-    position: "relative", zIndex: 1, maxWidth: 720, margin: "0 auto",
+    position: "relative", zIndex: 1, maxWidth: 740, margin: "0 auto",
     padding: "48px 20px 40px", display: "flex", flexDirection: "column", gap: 16,
   },
-  header: { textAlign: "center", marginBottom: 8 },
-  logoRow: { display: "flex", alignItems: "center", justifyContent: "center", gap: 10 },
-  logoDot: { width: 10, height: 10, borderRadius: "50%", background: "linear-gradient(135deg, #6366f1, #a855f7)" },
-  logoText: { fontSize: 26, fontWeight: 700, letterSpacing: "-0.5px", color: "#fff" },
-  tagline: { fontSize: 14, color: "#555", marginTop: 6 },
+  header: { textAlign: "center", marginBottom: 12 },
+  logoRow: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12 },
+  logoDot: { width: 12, height: 12, borderRadius: "50%", background: `linear-gradient(135deg, ${A}, ${A2})`, boxShadow: `0 0 16px ${G(0.5)}` },
+  logoText: { fontSize: 28, fontWeight: 800, letterSpacing: "-0.5px", color: "#fff" },
+  tagline: { fontSize: 13, color: "#4a4a5a", marginTop: 6, letterSpacing: "0.3px" },
 
-  nav: { display: "flex", gap: 2, background: "#0d0d0d", borderRadius: 12, padding: 3, border: "1px solid #1a1a1a" },
+  nav: {
+    display: "flex", gap: 2, borderRadius: 14, padding: 3,
+    background: "rgba(12, 12, 18, 0.8)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+    border: "1px solid rgba(255,255,255,0.04)",
+  },
   navBtn: {
-    flex: 1, padding: "10px 0", background: "transparent", border: "none", color: "#666",
-    borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 500, transition: "all 0.2s", position: "relative",
+    flex: 1, padding: "11px 0", background: "transparent", border: "none", color: "#555",
+    borderRadius: 11, cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.25s", position: "relative",
+    letterSpacing: "0.3px",
   },
-  navActive: { background: "#1a1a1a", color: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.3)" },
+  navActive: {
+    background: "rgba(232, 148, 90, 0.08)", color: "#e8945a",
+    boxShadow: `0 0 20px ${G(0.08)}, inset 0 1px 0 rgba(255,255,255,0.03)`,
+  },
   insightsDot: {
-    position: "absolute", top: 6, right: "30%", width: 6, height: 6, borderRadius: "50%",
-    background: "#6366f1",
+    position: "absolute", top: 6, right: "28%", width: 6, height: 6, borderRadius: "50%",
+    background: T, boxShadow: `0 0 8px ${T}`,
   },
 
-  card: { background: "#0d0d0d", borderRadius: 16, padding: 20, border: "1px solid #1a1a1a", animation: "slideUp 0.3s ease" },
-  sectionLabel: { fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, color: "#444", marginBottom: 12 },
-  optional: { fontWeight: 400, color: "#333", textTransform: "none", letterSpacing: 0 },
+  card: {
+    borderRadius: 18, padding: 22,
+    background: "rgba(12, 12, 18, 0.6)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+    border: "1px solid rgba(255,255,255,0.04)",
+    animation: "slideUp 0.35s ease",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+  },
+  sectionLabel: {
+    fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5,
+    color: A, marginBottom: 14, display: "flex", alignItems: "center", gap: 8,
+  },
+  optional: { fontWeight: 400, color: "#3a3a4a", textTransform: "none", letterSpacing: 0 },
 
-  input: { width: "100%", background: "transparent", border: "none", color: "#e0e0e0", fontSize: 15, resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.6 },
+  input: { width: "100%", background: "transparent", border: "none", color: "#d0d0d8", fontSize: 15, resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.7 },
   toolbar: { display: "flex", justifyContent: "space-between", alignItems: "center" },
   durRow: { display: "flex", gap: 6 },
-  durBtn: { background: "#111", border: "1px solid #222", color: "#666", padding: "6px 16px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 500, transition: "all 0.15s" },
-  durActive: { background: "#fff", color: "#000", borderColor: "#fff" },
-  primaryBtn: { background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", border: "none", padding: "10px 28px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" },
-  presetRow: { display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14, paddingTop: 14, borderTop: "1px solid #1a1a1a" },
-  preset: { background: "#111", border: "1px solid #1a1a1a", color: "#555", padding: "5px 12px", borderRadius: 20, cursor: "pointer", fontSize: 11, transition: "all 0.15s" },
+  durBtn: {
+    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#555",
+    padding: "7px 18px", borderRadius: 9, cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "all 0.2s",
+  },
+  durActive: { background: A, color: "#0a0a0e", borderColor: A, boxShadow: `0 0 16px ${G(0.3)}` },
+  primaryBtn: {
+    background: `linear-gradient(135deg, ${A}, ${A2})`, color: "#0a0a0e", border: "none",
+    padding: "11px 30px", borderRadius: 11, fontSize: 13, fontWeight: 700, cursor: "pointer",
+    transition: "all 0.2s", boxShadow: `0 4px 20px ${G(0.3)}`, letterSpacing: "0.3px",
+  },
+  presetRow: { display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.04)" },
+  preset: {
+    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#555",
+    padding: "5px 14px", borderRadius: 20, cursor: "pointer", fontSize: 11, transition: "all 0.2s",
+  },
 
-  imageGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 8 },
-  imageThumb: { position: "relative", borderRadius: 10, overflow: "hidden", aspectRatio: "1", border: "1px solid #222" },
+  imageGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 10 },
+  imageThumb: {
+    position: "relative", borderRadius: 12, overflow: "hidden", aspectRatio: "1",
+    border: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+  },
   thumbImg: { width: "100%", height: "100%", objectFit: "cover" },
-  removeBtn: { position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: "50%", background: "rgba(0,0,0,0.7)", border: "1px solid #333", color: "#999", fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  addImageBtn: { borderRadius: 10, border: "2px dashed #222", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", aspectRatio: "1", cursor: "pointer", transition: "all 0.15s", minHeight: 80 },
+  removeBtn: {
+    position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: "50%",
+    background: "rgba(0,0,0,0.8)", border: `1px solid ${A2}`, color: A, fontSize: 11,
+    cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+  },
+  addImageBtn: {
+    borderRadius: 12, border: "2px dashed rgba(255,255,255,0.08)", display: "flex", flexDirection: "column",
+    alignItems: "center", justifyContent: "center", aspectRatio: "1", cursor: "pointer",
+    transition: "all 0.2s", minHeight: 80, background: "rgba(255,255,255,0.01)",
+  },
 
   voiceRow: { display: "flex", alignItems: "center", gap: 12 },
-  voiceBtn: { background: "#111", border: "1px solid #222", color: "#888", padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 500, transition: "all 0.15s" },
-  voiceBtnRec: { background: "#2a0a0a", borderColor: "#f87171", color: "#f87171", animation: "pulse 1s infinite" },
-  voiceReady: { display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", background: "#111", borderRadius: 8, border: "1px solid #222" },
-  voiceText: { flex: 1, fontSize: 13, color: "#888" },
-  voiceRemove: { background: "transparent", border: "1px solid #333", color: "#666", padding: "3px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11 },
+  voiceBtn: {
+    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#888",
+    padding: "9px 22px", borderRadius: 9, cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "all 0.2s",
+  },
+  voiceBtnRec: { background: "rgba(239,68,68,0.1)", borderColor: "#ef4444", color: "#ef4444", animation: "pulse 1s infinite" },
+  voiceReady: {
+    display: "flex", alignItems: "center", gap: 10, padding: "9px 16px",
+    background: "rgba(232,148,90,0.06)", borderRadius: 10, border: `1px solid ${G(0.15)}`,
+  },
+  voiceText: { flex: 1, fontSize: 13, color: "#999" },
+  voiceRemove: { background: "transparent", border: "1px solid rgba(255,255,255,0.08)", color: "#666", padding: "3px 12px", borderRadius: 7, cursor: "pointer", fontSize: 11 },
 
-  sliderGrid: { display: "flex", flexDirection: "column", gap: 16 },
-  sliderHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
-  sliderLabel: { fontSize: 13, fontWeight: 500, color: "#aaa" },
-  toggleBtn: { background: "#111", border: "1px solid #222", color: "#555", padding: "3px 10px", borderRadius: 6, cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 },
-  toggleActive: { background: "#1a1a2a", borderColor: "#6366f1", color: "#6366f1" },
-  slider: { width: "100%", height: 4, appearance: "none", WebkitAppearance: "none", background: "#222", borderRadius: 2, outline: "none", cursor: "pointer", accentColor: "#6366f1" },
-  sliderRange: { display: "flex", justifyContent: "space-between", fontSize: 10, color: "#444", marginTop: 4 },
-  sliderVal: { fontWeight: 600, color: "#6366f1" },
+  /* Sliders — unique visual */
+  sliderGrid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 },
+  sliderHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  sliderLabel: { fontSize: 13, fontWeight: 600, color: "#ccc" },
+  toggleBtn: {
+    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#555",
+    padding: "3px 10px", borderRadius: 6, cursor: "pointer", fontSize: 9, fontWeight: 700,
+    textTransform: "uppercase", letterSpacing: 0.8, transition: "all 0.2s",
+  },
+  toggleActive: { background: `rgba(232,148,90,0.1)`, borderColor: G(0.3), color: A },
+  slider: { width: "100%" },
+  sliderRange: { display: "flex", justifyContent: "space-between", fontSize: 9, color: "#3a3a4a", marginTop: 6 },
+  sliderVal: { fontWeight: 700, color: A, fontSize: 12 },
 
-  loadingCard: { display: "flex", alignItems: "center", gap: 16, padding: 20, background: "#0d0d0d", borderRadius: 16, border: "1px solid #1a1a1a" },
-  waveRow: { display: "flex", alignItems: "center", gap: 3 },
-  waveBar: { width: 3, height: 8, background: "#6366f1", borderRadius: 2, animation: "waveform 0.8s ease-in-out infinite" },
+  /* Loading */
+  loadingCard: {
+    display: "flex", alignItems: "center", gap: 16, padding: 22,
+    background: "rgba(12, 12, 18, 0.6)", backdropFilter: "blur(16px)", borderRadius: 18,
+    border: "1px solid rgba(255,255,255,0.04)",
+  },
+  waveRow: { display: "flex", alignItems: "center", gap: 4 },
+  waveBar: { width: 3, height: 8, background: A, borderRadius: 2, animation: "waveform 0.8s ease-in-out infinite" },
   loadingText: { fontSize: 13, color: "#555" },
-  errorCard: { padding: 16, background: "#1a0a0a", borderRadius: 12, border: "1px solid #331111", color: "#ef4444", fontSize: 13 },
+  errorCard: {
+    padding: 16, borderRadius: 14, fontSize: 13, color: "#ef4444",
+    background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)",
+  },
 
-  resultCard: { background: "#0d0d0d", borderRadius: 16, padding: 24, border: "1px solid #1a1a1a", animation: "slideUp 0.3s ease", display: "flex", flexDirection: "column", gap: 20 },
-  section: { borderTop: "1px solid #1a1a1a", paddingTop: 16 },
-  resultLabel: { fontSize: 11, color: "#444", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 },
-  resultEnhanced: { fontSize: 13, color: "#888", fontStyle: "italic", lineHeight: 1.5 },
+  /* Result */
+  resultCard: {
+    borderRadius: 18, padding: 26,
+    background: "rgba(12, 12, 18, 0.6)", backdropFilter: "blur(16px)",
+    border: "1px solid rgba(255,255,255,0.04)", animation: "slideUp 0.35s ease",
+    display: "flex", flexDirection: "column", gap: 22, boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+  },
+  section: { borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 18 },
+  resultLabel: { fontSize: 10, color: A, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8, fontWeight: 700 },
+  resultEnhanced: { fontSize: 13, color: "#777", fontStyle: "italic", lineHeight: 1.6 },
 
-  profileHeader: { display: "flex", alignItems: "center", gap: 10, marginBottom: 6 },
-  profileEmotion: { fontSize: 18, fontWeight: 700, color: "#fff", textTransform: "capitalize" },
-  profileDesc: { fontSize: 13, color: "#666", fontStyle: "italic", marginBottom: 12 },
-  emotionPills: { display: "flex", gap: 4, flexWrap: "wrap" },
-  emotionPillSmall: { fontSize: 10, background: "#1a1a2a", color: "#8b8bf5", padding: "2px 8px", borderRadius: 10, textTransform: "capitalize" },
-  profileBars: { display: "flex", flexDirection: "column", gap: 10 },
+  profileHeader: { display: "flex", alignItems: "center", gap: 10, marginBottom: 8 },
+  profileEmotion: { fontSize: 20, fontWeight: 800, color: "#fff", textTransform: "capitalize" },
+  profileDesc: { fontSize: 13, color: "#555", fontStyle: "italic", marginBottom: 14 },
+  emotionPills: { display: "flex", gap: 5, flexWrap: "wrap" },
+  emotionPillSmall: {
+    fontSize: 10, padding: "3px 10px", borderRadius: 12, textTransform: "capitalize",
+    background: `rgba(90,184,168,0.08)`, color: T, border: `1px solid rgba(90,184,168,0.15)`,
+  },
+  profileBars: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
   profileBarHeader: { display: "flex", justifyContent: "space-between", marginBottom: 4 },
-  profileBarLabel: { fontSize: 11, fontWeight: 500, color: "#666", textTransform: "uppercase", letterSpacing: 0.5 },
-  profileBarVal: { fontSize: 11, fontWeight: 600, color: "#6366f1" },
-  profileBarTrack: { width: "100%", height: 4, background: "#1a1a1a", borderRadius: 2, overflow: "hidden" },
-  profileBarFill: { height: "100%", borderRadius: 2, background: "linear-gradient(90deg, #6366f1, #a855f7)", transition: "width 0.6s ease" },
-  profileBarRange: { display: "flex", justifyContent: "space-between", fontSize: 9, color: "#333", marginTop: 2 },
-  overrideNote: { marginTop: 8, fontSize: 11, color: "#6366f1", fontStyle: "italic" },
+  profileBarLabel: { fontSize: 10, fontWeight: 600, color: "#555", textTransform: "uppercase", letterSpacing: 0.8 },
+  profileBarVal: { fontSize: 11, fontWeight: 700, color: A },
+  profileBarTrack: { width: "100%", height: 5, background: "rgba(255,255,255,0.04)", borderRadius: 3, overflow: "hidden" },
+  profileBarFill: { height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${A}, ${A2})`, transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow: `0 0 8px ${G(0.3)}` },
+  profileBarRange: { display: "flex", justifyContent: "space-between", fontSize: 9, color: "#2a2a3a", marginTop: 3 },
+  overrideNote: { marginTop: 8, fontSize: 11, color: T, fontStyle: "italic" },
 
   /* A/B */
-  abRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 8 },
-  abCol: { display: "flex", flexDirection: "column", gap: 6 },
-  abVersionLabel: { fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: 0.5 },
-  prefRow: { marginTop: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
-  prefLabel: { fontSize: 12, color: "#666" },
+  abRow: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 10 },
+  abCol: {
+    display: "flex", flexDirection: "column", gap: 8, padding: 14, borderRadius: 14,
+    background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)",
+  },
+  abVersionLabel: { fontSize: 11, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: 1 },
+  prefRow: { marginTop: 14, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
+  prefLabel: { fontSize: 12, color: "#555" },
   prefBtns: { display: "flex", gap: 6 },
-  prefBtn: { background: "#111", border: "1px solid #222", color: "#666", padding: "5px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12, transition: "all 0.15s" },
-  prefBtnActive: { background: "#1a1a2a", borderColor: "#6366f1", color: "#6366f1" },
+  prefBtn: {
+    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#555",
+    padding: "6px 16px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 500, transition: "all 0.2s",
+  },
+  prefBtnActive: { background: `rgba(232,148,90,0.1)`, borderColor: G(0.3), color: A },
 
   /* Explainability */
-  explainNarrative: { fontSize: 13, color: "#999", lineHeight: 1.6, marginBottom: 10 },
-  descriptorRow: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 },
-  descriptor: { fontSize: 10, background: "#111", border: "1px solid #1a1a1a", color: "#888", padding: "3px 10px", borderRadius: 12 },
+  explainNarrative: { fontSize: 13, color: "#888", lineHeight: 1.7, marginBottom: 12 },
+  descriptorRow: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 },
+  descriptor: {
+    fontSize: 10, padding: "4px 12px", borderRadius: 14,
+    background: "rgba(90,184,168,0.06)", border: `1px solid rgba(90,184,168,0.12)`, color: T,
+  },
   timeline: { display: "flex", flexDirection: "column" },
-  timelineStep: { display: "flex", gap: 12, minHeight: 48 },
-  timelineDot: { display: "flex", flexDirection: "column", alignItems: "center", width: 16, flexShrink: 0 },
-  timelineDotInner: { width: 8, height: 8, borderRadius: "50%", background: "linear-gradient(135deg, #6366f1, #a855f7)", flexShrink: 0 },
-  timelineLine: { width: 1, flex: 1, background: "#222", marginTop: 4 },
-  timelineContent: { display: "flex", flexDirection: "column", gap: 2, paddingBottom: 12 },
-  timelineStepName: { fontSize: 12, fontWeight: 600, color: "#ccc" },
-  timelineStepDetail: { fontSize: 11, color: "#555", lineHeight: 1.4 },
+  timelineStep: { display: "flex", gap: 14, minHeight: 50 },
+  timelineDot: { display: "flex", flexDirection: "column", alignItems: "center", width: 18, flexShrink: 0 },
+  timelineDotInner: { width: 8, height: 8, borderRadius: "50%", background: `linear-gradient(135deg, ${A}, ${A2})`, flexShrink: 0, boxShadow: `0 0 8px ${G(0.4)}` },
+  timelineLine: { width: 1, flex: 1, background: "rgba(255,255,255,0.06)", marginTop: 4 },
+  timelineContent: { display: "flex", flexDirection: "column", gap: 3, paddingBottom: 14 },
+  timelineStepName: { fontSize: 12, fontWeight: 700, color: "#ccc" },
+  timelineStepDetail: { fontSize: 11, color: "#4a4a5a", lineHeight: 1.5 },
 
   /* Feedback */
-  ratingRow: { display: "flex", alignItems: "center", gap: 4 },
-  starBtn: { background: "transparent", border: "none", fontSize: 24, cursor: "pointer", color: "#333", transition: "color 0.15s", padding: "2px" },
-  starActive: { color: "#f59e0b" },
-  ratingLabel: { fontSize: 12, color: "#666", marginLeft: 8 },
-  replayRow: { display: "flex", alignItems: "center", gap: 10, marginTop: 10 },
-  toggleChip: { background: "#111", border: "1px solid #222", color: "#666", padding: "4px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12, transition: "all 0.15s" },
-  toggleChipActive: { background: "#0a1a0a", borderColor: "#1a3a1a", color: "#4ade80" },
+  ratingRow: { display: "flex", alignItems: "center", gap: 6 },
+  starBtn: { background: "transparent", border: "none", fontSize: 26, cursor: "pointer", color: "#2a2a3a", transition: "all 0.15s", padding: "2px" },
+  starActive: { color: A, filter: `drop-shadow(0 0 6px ${G(0.5)})` },
+  ratingLabel: { fontSize: 12, color: "#555", marginLeft: 8 },
+  replayRow: { display: "flex", alignItems: "center", gap: 10, marginTop: 12 },
+  toggleChip: {
+    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#555",
+    padding: "5px 16px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 500, transition: "all 0.2s",
+  },
+  toggleChipActive: { background: "rgba(90,184,168,0.1)", borderColor: `rgba(90,184,168,0.25)`, color: T },
 
   /* Stats Grid */
-  statsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 },
-  statBox: { background: "#111", borderRadius: 10, padding: "12px 8px", textAlign: "center", border: "1px solid #1a1a1a" },
-  statVal: { fontSize: 20, fontWeight: 700, color: "#fff" },
-  statLabel: { fontSize: 9, color: "#555", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 4 },
+  statsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 },
+  statBox: {
+    borderRadius: 14, padding: "14px 8px", textAlign: "center",
+    background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)",
+  },
+  statVal: { fontSize: 22, fontWeight: 800, color: "#fff" },
+  statLabel: { fontSize: 8, color: "#4a4a5a", textTransform: "uppercase", letterSpacing: 1, marginTop: 4 },
 
   /* Insights */
-  ruleHeader: { fontSize: 11, fontWeight: 600, color: "#666", marginBottom: 6 },
-  rulePositive: { fontSize: 12, color: "#4ade80", padding: "4px 0", paddingLeft: 12, borderLeft: "2px solid #1a3a1a", marginBottom: 4 },
-  ruleNegative: { fontSize: 12, color: "#f87171", padding: "4px 0", paddingLeft: 12, borderLeft: "2px solid #3a1a1a", marginBottom: 4 },
-  emotionBlock: { padding: "12px 0", borderBottom: "1px solid #1a1a1a" },
-  emotionName: { fontSize: 14, fontWeight: 600, color: "#fff", textTransform: "capitalize", marginBottom: 6 },
-  emotionSubLabel: { fontSize: 10, color: "#555", textTransform: "uppercase" },
-  emotionPill: { fontSize: 11, background: "#111", color: "#888", padding: "2px 8px", borderRadius: 8, marginLeft: 4, display: "inline-block", marginBottom: 2 },
-  paramRanges: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 },
-  paramRange: { fontSize: 10, background: "#111", color: "#6366f1", padding: "2px 8px", borderRadius: 6, border: "1px solid #1a1a2a" },
-  paramInsight: { display: "flex", gap: 8, alignItems: "baseline", padding: "6px 0", borderBottom: "1px solid #111" },
-  paramInsightName: { fontSize: 11, fontWeight: 600, color: "#888", textTransform: "capitalize", minWidth: 100 },
-  paramInsightText: { fontSize: 12, color: "#666" },
+  ruleHeader: { fontSize: 10, fontWeight: 700, color: "#666", marginBottom: 8, letterSpacing: 0.5 },
+  rulePositive: { fontSize: 12, color: T, padding: "5px 0 5px 14px", borderLeft: `2px solid ${T}`, marginBottom: 6 },
+  ruleNegative: { fontSize: 12, color: "#e06060", padding: "5px 0 5px 14px", borderLeft: "2px solid #e06060", marginBottom: 6 },
+  emotionBlock: { padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" },
+  emotionName: { fontSize: 14, fontWeight: 700, color: "#fff", textTransform: "capitalize", marginBottom: 8 },
+  emotionSubLabel: { fontSize: 9, color: "#4a4a5a", textTransform: "uppercase", letterSpacing: 0.5 },
+  emotionPill: { fontSize: 11, background: "rgba(255,255,255,0.03)", color: "#888", padding: "3px 10px", borderRadius: 10, marginLeft: 4, display: "inline-block", marginBottom: 3 },
+  paramRanges: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 },
+  paramRange: { fontSize: 10, background: `rgba(232,148,90,0.06)`, color: A, padding: "3px 10px", borderRadius: 8, border: `1px solid ${G(0.12)}` },
+  paramInsight: { display: "flex", gap: 10, alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" },
+  paramInsightName: { fontSize: 11, fontWeight: 700, color: "#888", textTransform: "capitalize", minWidth: 110 },
+  paramInsightText: { fontSize: 12, color: "#555" },
 
   /* Discover */
-  histCard: { background: "#0d0d0d", borderRadius: 14, padding: 18, border: "1px solid #1a1a1a", animation: "slideUp 0.3s ease" },
-  histTop: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 8 },
-  badgeText: { fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, background: "#1a1a2a", color: "#6366f1", padding: "3px 8px", borderRadius: 4 },
-  badgeImage: { fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, background: "#1a2a1a", color: "#4ade80", padding: "3px 8px", borderRadius: 4 },
-  badgeMulti: { fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, background: "#2a1a2a", color: "#a855f7", padding: "3px 8px", borderRadius: 4 },
-  histRating: { fontSize: 12, color: "#f59e0b", letterSpacing: 2 },
-  histTime: { fontSize: 11, color: "#333", marginLeft: "auto" },
-  histPrompt: { fontSize: 14, color: "#ccc", marginBottom: 4, lineHeight: 1.4 },
-  histEnhanced: { fontSize: 12, color: "#555", fontStyle: "italic", marginBottom: 14, lineHeight: 1.4 },
-  miniProfileRow: { display: "flex", gap: 8, marginBottom: 12 },
+  histCard: {
+    borderRadius: 16, padding: 20,
+    background: "rgba(12, 12, 18, 0.6)", backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255,255,255,0.04)", animation: "slideUp 0.3s ease",
+  },
+  histTop: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 8 },
+  badgeText: { fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, background: `rgba(232,148,90,0.08)`, color: A, padding: "3px 10px", borderRadius: 6 },
+  badgeImage: { fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, background: `rgba(90,184,168,0.08)`, color: T, padding: "3px 10px", borderRadius: 6 },
+  badgeMulti: { fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, background: "rgba(168,90,200,0.08)", color: "#b080d0", padding: "3px 10px", borderRadius: 6 },
+  histRating: { fontSize: 12, color: A, letterSpacing: 2 },
+  histTime: { fontSize: 10, color: "#333", marginLeft: "auto" },
+  histPrompt: { fontSize: 14, color: "#ccc", marginBottom: 4, lineHeight: 1.5, fontWeight: 500 },
+  histEnhanced: { fontSize: 12, color: "#444", fontStyle: "italic", marginBottom: 14, lineHeight: 1.5 },
+  miniProfileRow: { display: "flex", gap: 8, marginBottom: 14 },
   miniBar: { flex: 1 },
-  miniBarLabel: { fontSize: 9, color: "#444", textTransform: "uppercase", marginBottom: 3 },
-  miniBarTrack: { height: 3, background: "#1a1a1a", borderRadius: 2, overflow: "hidden" },
-  miniBarFill: { height: "100%", borderRadius: 2, background: "linear-gradient(90deg, #6366f1, #a855f7)" },
-  histAudioRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 },
+  miniBarLabel: { fontSize: 8, color: "#3a3a4a", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 },
+  miniBarTrack: { height: 3, background: "rgba(255,255,255,0.04)", borderRadius: 2, overflow: "hidden" },
+  miniBarFill: { height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${A}, ${A2})` },
+  histAudioRow: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 },
   histAudioItem: { display: "flex", flexDirection: "column", gap: 4 },
-  histVersionLabel: { fontSize: 10, color: "#555", fontWeight: 600, textTransform: "uppercase" },
+  histVersionLabel: { fontSize: 9, color: "#4a4a5a", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
 
-  emptyState: { textAlign: "center", padding: 40, color: "#333", fontSize: 14 },
-  footer: { textAlign: "center", fontSize: 11, color: "#333", marginTop: 20, paddingTop: 20, borderTop: "1px solid #111" },
+  emptyState: { textAlign: "center", padding: 48, color: "#3a3a4a", fontSize: 14 },
+  footer: { textAlign: "center", fontSize: 11, color: "#2a2a3a", marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.03)" },
 };

@@ -197,8 +197,9 @@ def _reflect_emotion_profiles(feedback_list):
             p = f.get("emotion_profile", {})
             text += (
                 f"- Rating {f.get('rating', '?')}, "
-                f"Energy={p.get('energy', '?')}, Style={p.get('style', '?')}, "
-                f"Warmth={p.get('warmth', '?')}, Arc={p.get('arc', '?')}, "
+                f"Intensity={p.get('intensity', '?')}, Mood={p.get('mood', '?')}, "
+                f"Complexity={p.get('complexity', '?')}, Tempo={p.get('tempo', '?')}, "
+                f"Texture={p.get('texture', '?')}, Narrative={p.get('narrative', '?')}, "
                 f"Prompt: {f.get('enhanced_prompt', '')}, Notes: {f.get('notes', '')}\n"
             )
 
@@ -207,8 +208,9 @@ def _reflect_emotion_profiles(feedback_list):
             messages=[
                 {"role": "system", "content": (
                     f"Analyze feedback for emotion '{emotion}' in music generation. Return JSON:\n"
-                    '{"preferred_params": {"energy": [low, high], "style": [low, high], '
-                    '"warmth": [low, high], "arc": [low, high]}, '
+                    '{"preferred_params": {"intensity": [low, high], "mood": [low, high], '
+                    '"complexity": [low, high], "tempo": [low, high], '
+                    '"texture": [low, high], "narrative": [low, high]}, '
                     '"prompt_principles": ["principle1", ...], '
                     '"anti_patterns": ["pattern1", ...], '
                     '"best_prompt_template": "a template prompt"}\n'
@@ -259,7 +261,7 @@ def get_learned_defaults(emotion: str) -> dict:
     if len(matching) < 2:
         return {}
     result = {}
-    for k in ["energy", "style", "warmth", "arc"]:
+    for k in ["intensity", "mood", "complexity", "tempo", "texture", "narrative"]:
         vals = [f["emotion_profile"][k] for f in matching if k in f.get("emotion_profile", {})]
         if vals:
             result[k] = round(sum(vals) / len(vals))
@@ -391,10 +393,12 @@ def fuse_emotions(analyses: list[dict]) -> dict:
                 "Blend ALL detected emotions into slider values, not just the dominant one. Return JSON:\n"
                 '- "emotion": dominant emotion word\n'
                 '- "emotions": list of all detected emotions (deduplicated)\n'
-                '- "energy": 0-100\n'
-                '- "style": 0-100 (0=lo-fi intimate, 100=cinematic epic)\n'
-                '- "warmth": 0-100 (0=warm analog, 100=bright digital)\n'
-                '- "arc": 0-100 (0=steady, 100=dramatic build)\n'
+                '- "intensity": 0-100 (0=whisper-soft, 100=overwhelming power)\n'
+                '- "mood": 0-100 (0=dark/melancholic, 100=euphoric/bright)\n'
+                '- "complexity": 0-100 (0=minimal/sparse, 100=maximalist/layered)\n'
+                '- "tempo": 0-100 (0=very slow ~55BPM, 100=fast ~150BPM)\n'
+                '- "texture": 0-100 (0=fully electronic/synthetic, 100=fully organic/acoustic)\n'
+                '- "narrative": 0-100 (0=flat/looping, 100=dramatic journey/climax)\n'
                 '- "description": 1 sentence emotional landscape\n'
                 "Output ONLY valid JSON."
             )},
@@ -406,17 +410,18 @@ def fuse_emotions(analyses: list[dict]) -> dict:
     profile["sources"] = [a["source"] for a in analyses]
 
     # Apply range-clamping from learned emotion profile
+    SLIDER_KEYS = ["intensity", "mood", "complexity", "tempo", "texture", "narrative"]
     emotion = profile.get("emotion", "")
     ep = get_emotion_profile(emotion)
     if ep and "preferred_params" in ep:
-        for key in ["energy", "style", "warmth", "arc"]:
+        for key in SLIDER_KEYS:
             if key in ep["preferred_params"] and key in profile:
                 profile[key] = _range_clamp(profile[key], ep["preferred_params"][key])
     else:
         # Fallback: blend with learned defaults
         learned = get_learned_defaults(emotion)
         if learned:
-            for key in ["energy", "style", "warmth", "arc"]:
+            for key in SLIDER_KEYS:
                 if key in learned and key in profile:
                     profile[key] = round(profile[key] * 0.7 + learned[key] * 0.3)
 
@@ -427,33 +432,47 @@ def fuse_emotions(analyses: list[dict]) -> dict:
 # Prompt construction with knowledge injection
 # ============================================================
 
-ENERGY_MAP = {
-    (0, 20): "quiet, minimal, ambient, whisper-soft, ~60 BPM",
-    (21, 40): "gentle, relaxed, easy-going, mellow, ~80 BPM",
-    (41, 60): "moderate, steady, grooving, balanced, ~100 BPM",
-    (61, 80): "energetic, driving, powerful, uplifting, ~120 BPM",
-    (81, 100): "intense, explosive, soaring, maximum energy, ~140 BPM",
+INTENSITY_MAP = {
+    (0, 20): "whisper-soft, barely there, fragile and delicate",
+    (21, 40): "gentle, restrained, understated, light touch",
+    (41, 60): "moderate power, controlled energy, solid groove",
+    (61, 80): "forceful, driving, punchy, high-impact",
+    (81, 100): "overwhelming, maximum power, crushing intensity",
 }
-STYLE_MAP = {
-    (0, 20): "lo-fi, intimate, bedroom production, raw and personal",
-    (21, 40): "indie, understated, warm production, subtle details",
-    (41, 60): "polished pop, clean production, radio-ready",
-    (61, 80): "anthemic, big production, layered arrangement",
-    (81, 100): "cinematic, orchestral, epic, massive soundscape",
+MOOD_MAP = {
+    (0, 20): "deeply melancholic, dark, brooding, haunting",
+    (21, 40): "bittersweet, wistful, contemplative, overcast",
+    (41, 60): "neutral, balanced, calm, even-keeled",
+    (61, 80): "uplifting, warm, hopeful, sun-dappled",
+    (81, 100): "euphoric, radiant, ecstatic, pure joy",
 }
-WARMTH_MAP = {
-    (0, 20): "warm analog, vinyl texture, tape saturation, vintage",
-    (21, 40): "organic, acoustic instruments, natural reverb",
-    (41, 60): "balanced mix of electronic and acoustic elements",
-    (61, 80): "modern electronic, clean synths, digital precision",
-    (81, 100): "bright digital, crystalline, futuristic, hi-fi",
+COMPLEXITY_MAP = {
+    (0, 20): "stark minimal, single instrument, bare and exposed",
+    (21, 40): "sparse arrangement, few elements, clean space",
+    (41, 60): "moderate layers, balanced arrangement, clear structure",
+    (61, 80): "rich arrangement, multiple layers, detailed orchestration",
+    (81, 100): "maximalist, dense wall of sound, intricate counterpoint",
 }
-ARC_MAP = {
-    (0, 20): "steady, constant, meditative, unchanging",
-    (21, 40): "gentle evolution, subtle shifts, slow progression",
-    (41, 60): "clear sections, moderate dynamics, natural flow",
-    (61, 80): "rising intensity, building momentum, crescendo",
-    (81, 100): "dramatic build, explosive climax, cinematic arc",
+TEMPO_MAP = {
+    (0, 20): "very slow, ~55 BPM, glacial, meditative",
+    (21, 40): "slow, ~75 BPM, laid-back, unhurried",
+    (41, 60): "mid-tempo, ~100 BPM, walking pace, steady",
+    (61, 80): "upbeat, ~125 BPM, energetic, dance-ready",
+    (81, 100): "fast, ~150 BPM, racing, frantic, breathless",
+}
+TEXTURE_MAP = {
+    (0, 20): "fully electronic, synthetic, glitchy, digital artifacts",
+    (21, 40): "mostly electronic, crisp synths, programmed drums",
+    (41, 60): "hybrid, blend of electronic and acoustic, versatile",
+    (61, 80): "mostly acoustic, real instruments, natural room sound",
+    (81, 100): "fully organic, live ensemble, raw, unprocessed",
+}
+NARRATIVE_MAP = {
+    (0, 20): "flat, hypnotic, unchanging loop, trance-like repetition",
+    (21, 40): "gentle drift, subtle evolution, slow unfold",
+    (41, 60): "clear verse-chorus structure, natural progression",
+    (61, 80): "rising arc, building momentum, crescendo pattern",
+    (81, 100): "dramatic journey, explosive climax, cinematic arc with resolution",
 }
 
 
@@ -492,19 +511,23 @@ def _build_knowledge_context(emotion: str) -> str:
 
 
 def profile_to_prompt(profile: dict) -> str:
-    energy_desc = map_slider(profile.get("energy", 50), ENERGY_MAP)
-    style_desc = map_slider(profile.get("style", 50), STYLE_MAP)
-    warmth_desc = map_slider(profile.get("warmth", 50), WARMTH_MAP)
-    arc_desc = map_slider(profile.get("arc", 50), ARC_MAP)
+    intensity_desc = map_slider(profile.get("intensity", 50), INTENSITY_MAP)
+    mood_desc = map_slider(profile.get("mood", 50), MOOD_MAP)
+    complexity_desc = map_slider(profile.get("complexity", 50), COMPLEXITY_MAP)
+    tempo_desc = map_slider(profile.get("tempo", 50), TEMPO_MAP)
+    texture_desc = map_slider(profile.get("texture", 50), TEXTURE_MAP)
+    narrative_desc = map_slider(profile.get("narrative", 50), NARRATIVE_MAP)
 
     knowledge = _build_knowledge_context(profile.get("emotion", ""))
 
     system_parts = [
         "You are a music director. Create a vivid, specific MusicGen prompt (2-3 sentences) that combines these musical qualities:",
-        f"Energy: {energy_desc}",
-        f"Style: {style_desc}",
-        f"Warmth: {warmth_desc}",
-        f"Arc: {arc_desc}",
+        f"Intensity: {intensity_desc}",
+        f"Mood: {mood_desc}",
+        f"Complexity: {complexity_desc}",
+        f"Tempo: {tempo_desc}",
+        f"Texture: {texture_desc}",
+        f"Narrative: {narrative_desc}",
         f"Core emotion: {profile.get('emotion', 'neutral')} — {profile.get('description', '')}",
         f"All emotions to blend: {', '.join(profile.get('emotions', [profile.get('emotion', 'neutral')]))}",
         "Include specific instruments, tempo, key, and production style. Output ONLY the prompt text.",
@@ -565,10 +588,12 @@ def explain_generation(original_inputs: str, profile: dict, music_prompt: str) -
 # Audio generation — batched A/B
 # ============================================================
 
-def generate_audio(prompt: str, duration_tokens: int, num_variations: int = 2) -> list[dict]:
+def generate_audio(prompt: str, duration_tokens: int, num_variations: int = 3) -> list[dict]:
     prompts = [prompt]
     if num_variations >= 2:
-        prompts.append(prompt + " with subtle variation in rhythm and texture")
+        prompts.append(prompt + " with shifted rhythm, altered percussion pattern and different groove")
+    if num_variations >= 3:
+        prompts.append(prompt + " reimagined with contrasting texture, different instrument palette and tempo feel")
 
     inputs = processor(text=prompts, padding=True, return_tensors="pt").to(DEVICE)
     audio_values = model.generate(**inputs, do_sample=True, guidance_scale=3, max_new_tokens=duration_tokens)
@@ -576,7 +601,7 @@ def generate_audio(prompt: str, duration_tokens: int, num_variations: int = 2) -
     ts = int(time.time())
     results = []
     for i in range(len(prompts)):
-        version = chr(65 + i)  # A, B
+        version = chr(65 + i)  # A, B, C
         filename = f"gen_{ts}_{version}.wav"
         filepath = os.path.join(OUTPUT_DIR, filename)
         scipy.io.wavfile.write(filepath, rate=SAMPLE_RATE, data=audio_values[i, 0].cpu().numpy())
@@ -596,10 +621,12 @@ def generate_audio(prompt: str, duration_tokens: int, num_variations: int = 2) -
 class GenerateRequest(BaseModel):
     prompt: str
     duration: int = 256
-    energy: int | None = None
-    style: int | None = None
-    warmth: int | None = None
-    arc: int | None = None
+    intensity: int | None = None
+    mood: int | None = None
+    complexity: int | None = None
+    tempo: int | None = None
+    texture: int | None = None
+    narrative: int | None = None
 
 
 @app.post("/generate")
@@ -608,7 +635,7 @@ def generate(req: GenerateRequest):
     profile = fuse_emotions([analysis])
 
     overrides = []
-    for key in ["energy", "style", "warmth", "arc"]:
+    for key in ["intensity", "mood", "complexity", "tempo", "texture", "narrative"]:
         val = getattr(req, key)
         if val is not None:
             profile[key] = val
@@ -651,10 +678,12 @@ async def generate_multimodal(
     voice: UploadFile | None = File(None),
     text: str = Form(""),
     duration: int = Form(256),
-    energy: int | None = Form(None),
-    style: int | None = Form(None),
-    warmth: int | None = Form(None),
-    arc: int | None = Form(None),
+    intensity: int | None = Form(None),
+    mood: int | None = Form(None),
+    complexity: int | None = Form(None),
+    tempo: int | None = Form(None),
+    texture: int | None = Form(None),
+    narrative: int | None = Form(None),
 ):
     analyses = []
     input_desc_parts = []
@@ -689,7 +718,8 @@ async def generate_multimodal(
     profile = fuse_emotions(analyses)
 
     overrides = []
-    for key, val in [("energy", energy), ("style", style), ("warmth", warmth), ("arc", arc)]:
+    for key, val in [("intensity", intensity), ("mood", mood), ("complexity", complexity),
+                     ("tempo", tempo), ("texture", texture), ("narrative", narrative)]:
         if val is not None:
             profile[key] = val
             overrides.append(key)
@@ -737,7 +767,7 @@ def get_audio(filename: str):
 class FeedbackRequest(BaseModel):
     rating: int  # 1-5
     replay: bool = False
-    preferred_version: str = ""  # "A", "B", or ""
+    preferred_version: str = ""  # "A", "B", "C", or ""
     notes: str = ""
 
 
